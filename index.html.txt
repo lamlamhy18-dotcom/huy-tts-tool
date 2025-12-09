@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TTS Web - Text to Speech với Nhiều Giọng Đọc</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            padding: 30px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        h1 {
+            color: #2575fc;
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        h1 i {
+            color: #6a11cb;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .input-section {
+            background-color: #f9f9ff;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .voice-section {
+            background-color: #f0f7ff;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        h2 {
+            color: #2575fc;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        h2 i {
+            color: #6a11cb;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 250px;
+            padding: 20px;
+            border: 2px solid #e0e0ff;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            resize: vertical;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #6a11cb;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        select, input[type="range"] {
+            padding: 12px;
+            border: 2px solid #e0e0ff;
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: white;
+        }
+        
+        input[type="range"] {
+            padding: 0;
+        }
+        
+        .range-value {
+            text-align: center;
+            font-weight: 600;
+            color: #6a11cb;
+            margin-top: 5px;
+        }
+        
+        .voice-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+        
+        .voice-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            border: 2px solid #e0e0ff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .voice-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            border-color: #6a11cb;
+        }
+        
+        .voice-card.active {
+            background-color: #eef4ff;
+            border-color: #2575fc;
+            transform: translateY(-3px);
+        }
+        
+        .voice-name {
+            font-weight: 700;
+            color: #2575fc;
+            margin-bottom: 5px;
+        }
+        
+        .voice-lang {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .voice-test {
+            color: #6a11cb;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            flex: 1;
+            min-width: 150px;
+            padding: 18px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .play-btn {
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+        }
+        
+        .play-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 15px rgba(106, 17, 203, 0.4);
+        }
+        
+        .pause-btn {
+            background-color: #ffa500;
+            color: white;
+        }
+        
+        .pause-btn:hover {
+            background-color: #ff8c00;
+            transform: translateY(-3px);
+            box-shadow: 0 7px 15px rgba(255, 140, 0, 0.3);
+        }
+        
+        .stop-btn {
+            background-color: #ff4757;
+            color: white;
+        }
+        
+        .stop-btn:hover {
+            background-color: #ff3742;
+            transform: translateY(-3px);
+            box-shadow: 0 7px 15px rgba(255, 55, 66, 0.3);
+        }
+        
+        .history-section {
+            margin-top: 40px;
+            background-color: #f9f9ff;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .history-item {
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 5px solid #6a11cb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .history-text {
+            flex: 1;
+            margin-right: 15px;
+            font-size: 0.95rem;
+        }
+        
+        .history-voice {
+            color: #2575fc;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+        
+        .history-date {
+            color: #999;
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+        
+        .history-actions button {
+            min-width: auto;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+            color: #666;
+            font-size: 0.95rem;
+        }
+        
+        .status-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: #eef4ff;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            font-weight: 600;
+            color: #2575fc;
+        }
+        
+        .status-bar i {
+            font-size: 1.2rem;
+        }
+        
+        .speaking-animation {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-left: auto;
+        }
+        
+        .speaking-animation span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #6a11cb;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        
+        .speaking-animation span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .speaking-animation span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.5); opacity: 1; }
+        }
+        
+        .no-history {
+            text-align: center;
+            color: #999;
+            font-style: italic;
+            padding: 30px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #888;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-robot"></i> TTS Web - Text to Speech</h1>
+            <p class="subtitle">Chuyển đổi văn bản thành giọng nói với nhiều tùy chọn giọng đọc khác nhau. Nhập văn bản, chọn giọng và nghe ngay!</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="input-section">
+                <h2><i class="fas fa-keyboard"></i> Nhập Văn Bản</h2>
+                <textarea id="textInput" placeholder="Nhập hoặc dán văn bản bạn muốn chuyển thành giọng nói tại đây...">Xin chào! Đây là trình chuyển văn bản thành giọng nói với nhiều giọng đọc khác nhau. Bạn có thể nhập văn bản bất kỳ và chọn một trong các giọng đọc có sẵn để nghe thử.</textarea>
+                
+                <div class="controls">
+                    <div class="control-group">
+                        <label><i class="fas fa-volume-up"></i> Tốc độ đọc</label>
+                        <input type="range" id="rateControl" min="0.5" max="2" step="0.1" value="1">
+                        <div class="range-value">1.0x</div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label><i class="fas fa-wave-square"></i> Độ cao giọng</label>
+                        <input type="range" id="pitchControl" min="0.5" max="2" step="0.1" value="1">
+                        <div class="range-value">1.0</div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label><i class="fas fa-volume-up"></i> Âm lượng</label>
+                        <input type="range" id="volumeControl" min="0" max="1" step="0.1" value="1">
+                        <div class="range-value">1.0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="voice-section">
+                <h2><i class="fas fa-microphone-alt"></i> Chọn Giọng Đọc</h2>
+                <div class="voice-grid" id="voiceGrid">
+                    <!-- Giọng đọc sẽ được thêm bằng JavaScript -->
+                </div>
+                
+                <div class="status-bar" id="statusBar">
+                    <i class="fas fa-info-circle"></i>
+                    <span id="statusText">Sẵn sàng. Chọn một giọng đọc và nhấn nút Phát để bắt đầu.</span>
+                    <div class="speaking-animation" id="speakingAnimation" style="display: none;">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="buttons">
+            <button class="play-btn" id="playBtn">
+                <i class="fas fa-play"></i> Phát Giọng Nói
+            </button>
+            <button class="pause-btn" id="pauseBtn">
+                <i class="fas fa-pause"></i> Tạm dừng
+            </button>
+            <button class="stop-btn" id="stopBtn">
+                <i class="fas fa-stop"></i> Dừng lại
+            </button>
+        </div>
+        
+        <div class="history-section">
+            <h2><i class="fas fa-history"></i> Lịch Sử Chuyển Đổi</h2>
+            <div id="historyList">
+                <!-- Lịch sử sẽ được thêm bằng JavaScript -->
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2023 TTS Web - Text to Speech với Nhiều Giọng Đọc | Sử dụng Web Speech API</p>
+            <p>Trang web hoạt động tốt nhất trên trình duyệt Chrome và Edge</p>
+        </footer>
+    </div>
+
+    <script>
+        // Khởi tạo Web Speech API
+        const synth = window.speechSynthesis;
+        let voices = [];
+        let currentVoice = null;
+        let isPlaying = false;
+        let speechHistory = JSON.parse(localStorage.getItem('ttsHistory')) || [];
+        
+        // DOM Elements
+        const textInput = document.getElementById('textInput');
+        const rateControl = document.getElementById('rateControl');
+        const pitchControl = document.getElementById('pitchControl');
+        const volumeControl = document.getElementById('volumeControl');
+        const voiceGrid = document.getElementById('voiceGrid');
+        const playBtn = document.getElementById('playBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const statusText = document.getElementById('statusText');
+        const statusBar = document.getElementById('statusBar');
+        const speakingAnimation = document.getElementById('speakingAnimation');
+        const historyList = document.getElementById('historyList');
+        
+        // Cập nhật giá trị range
+        function updateRangeValue(elementId, value) {
+            document.querySelector(`#${elementId} + .range-value`).textContent = value;
+        }
+        
+        // Tải danh sách giọng đọc
+        function loadVoices() {
+            voices = synth.getVoices();
+            voiceGrid.innerHTML = '';
+            
+            if (voices.length === 0) {
+                voiceGrid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-microphone-slash"></i>
+                        <p>Không tìm thấy giọng đọc. Hãy đảm bảo bạn đang sử dụng trình duyệt hỗ trợ Web Speech API.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Sắp xếp giọng đọc theo ngôn ngữ
+            voices.sort((a, b) => {
+                if (a.lang < b.lang) return -1;
+                if (a.lang > b.lang) return 1;
+                return 0;
+            });
+            
+            // Tạo thẻ cho mỗi giọng đọc
+            voices.forEach((voice, index) => {
+                const voiceCard = document.createElement('div');
+                voiceCard.className = 'voice-card';
+                voiceCard.dataset.index = index;
+                
+                // Đánh dấu giọng mặc định (tiếng Việt nếu có, hoặc tiếng Anh)
+                if (voice.lang.startsWith('vi') || (index === 0 && !currentVoice)) {
+                    voiceCard.classList.add('active');
+                    currentVoice = voice;
+                }
+                
+                voiceCard.innerHTML = `
+                    <div class="voice-name">${voice.name}</div>
+                    <div class="voice-lang">${voice.lang} - ${voice.localService ? 'Hệ thống' : 'Trực tuyến'}</div>
+                    <div class="voice-test">
+                        <i class="fas fa-play-circle"></i> Nghe thử
+                    </div>
+                `;
+                
+                voiceCard.addEventListener('click', () => {
+                    // Xóa active khỏi tất cả các thẻ
+                    document.querySelectorAll('.voice-card').forEach(card => {
+                        card.classList.remove('active');
+                    });
+                    
+                    // Thêm active vào thẻ được chọn
+                    voiceCard.classList.add('active');
+                    currentVoice = voice;
+                    
+                    // Phát thử giọng nói
+                    testVoice(voice);
+                });
+                
+                voiceGrid.appendChild(voiceCard);
+            });
+            
+            updateStatus(`Đã tải ${voices.length} giọng đọc. Chọn một giọng để nghe thử.`);
+        }
+        
+        // Phát thử giọng đọc
+        function testVoice(voice) {
+            if (synth.speaking) {
+                synth.cancel();
+            }
+            
+            const utterance = new SpeechSynthesisUtterance("Đây là giọng nói thử nghiệm");
+            utterance.voice = voice;
+            utterance.rate = 1;
+            utterance.pitch = 1;
+            utterance.volume = 0.7;
+            
+            updateStatus(`Đang phát thử giọng: ${voice.name}`);
+            
+            utterance.onend = () => {
+                updateStatus(`Đã phát thử giọng: ${voice.name}`);
+                isPlaying = false;
+                updateUI();
+            };
+            
+            synth.speak(utterance);
+            isPlaying = true;
+            updateUI();
+        }
+        
+        // Phát văn bản thành giọng nói
+        function playText() {
+            if (synth.speaking) {
+                synth.cancel();
+            }
+            
+            const text = textInput.value.trim();
+            if (text === '') {
+                updateStatus('Vui lòng nhập văn bản trước khi phát.');
+                return;
+            }
+            
+            if (!currentVoice) {
+                updateStatus('Vui lòng chọn một giọng đọc.');
+                return;
+            }
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.voice = currentVoice;
+            utterance.rate = parseFloat(rateControl.value);
+            utterance.pitch = parseFloat(pitchControl.value);
+            utterance.volume = parseFloat(volumeControl.value);
+            
+            updateStatus(`Đang phát: "${text.substring(0, 30)}${text.length > 30 ? '...' : ''}"`);
+            
+            utterance.onstart = () => {
+                isPlaying = true;
+                updateUI();
+            };
+            
+            utterance.onend = () => {
+                updateStatus('Hoàn thành phát giọng nói.');
+                isPlaying = false;
+                updateUI();
+                
+                // Lưu vào lịch sử
+                saveToHistory(text, currentVoice.name);
+            };
+            
+            utterance.onerror = (event) => {
+                updateStatus('Đã xảy ra lỗi khi phát giọng nói: ' + event.error);
+                isPlaying = false;
+                updateUI();
+            };
+            
+            synth.speak(utterance);
+        }
+        
+        // Lưu vào lịch sử
+        function saveToHistory(text, voiceName) {
+            const historyItem = {
+                text: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
+                fullText: text,
+                voice: voiceName,
+                date: new Date().toLocaleString('vi-VN'),
+                timestamp: Date.now()
+            };
+            
+            speechHistory.unshift(historyItem);
+            
+            // Giới hạn lịch sử tối đa 10 mục
+            if (speechHistory.length > 10) {
+                speechHistory = speechHistory.slice(0, 10);
+            }
+            
+            // Lưu vào localStorage
+            localStorage.setItem('ttsHistory', JSON.stringify(speechHistory));
+            
+            // Hiển thị lịch sử
+            displayHistory();
+        }
+        
+        // Hiển thị lịch sử
+        function displayHistory() {
+            if (speechHistory.length === 0) {
+                historyList.innerHTML = '<div class="no-history">Chưa có lịch sử chuyển đổi nào.</div>';
+                return;
+            }
+            
+            historyList.innerHTML = '';
+            
+            speechHistory.forEach((item, index) => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                historyItem.innerHTML = `
+                    <div class="history-content">
+                        <div class="history-text">${item.text}</div>
+                        <div class="history-voice">Giọng: ${item.voice}</div>
+                        <div class="history-date">${item.date}</div>
+                    </div>
+                    <div class="history-actions">
+                        <button class="play-btn" style="padding: 8px 15px; font-size: 0.9rem;" data-index="${index}">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                `;
+                
+                historyList.appendChild(historyItem);
+            });
+            
+            // Thêm sự kiện cho nút phát trong lịch sử
+            document.querySelectorAll('.history-actions .play-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = e.currentTarget.dataset.index;
+                    const historyItem = speechHistory[index];
+                    
+                    // Đặt văn bản vào textarea
+                    textInput.value = historyItem.fullText;
+                    
+                    // Phát văn bản
+                    setTimeout(() => {
+                        playText();
+                    }, 100);
+                });
+            });
+        }
+        
+        // Cập nhật trạng thái UI
+        function updateUI() {
+            if (isPlaying) {
+                speakingAnimation.style.display = 'flex';
+                playBtn.innerHTML = '<i class="fas fa-play"></i> Đang phát...';
+                playBtn.disabled = true;
+            } else {
+                speakingAnimation.style.display = 'none';
+                playBtn.innerHTML = '<i class="fas fa-play"></i> Phát Giọng Nói';
+                playBtn.disabled = false;
+            }
+        }
+        
+        // Cập nhật trạng thái
+        function updateStatus(message) {
+            statusText.textContent = message;
+        }
+        
+        // Sự kiện khi giọng đọc được tải
+        speechSynthesis.onvoiceschanged = loadVoices;
+        
+        // Sự kiện cho các nút điều khiển
+        playBtn.addEventListener('click', playText);
+        
+        pauseBtn.addEventListener('click', () => {
+            if (synth.speaking && !synth.paused) {
+                synth.pause();
+                updateStatus('Đã tạm dừng.');
+            }
+        });
+        
+        stopBtn.addEventListener('click', () => {
+            if (synth.speaking) {
+                synth.cancel();
+                updateStatus('Đã dừng phát giọng nói.');
+                isPlaying = false;
+                updateUI();
+            }
+        });
+        
+        // Sự kiện cho các thanh điều chỉnh
+        rateControl.addEventListener('input', () => {
+            updateRangeValue('rateControl', rateControl.value + 'x');
+        });
+        
+        pitchControl.addEventListener('input', () => {
+            updateRangeValue('pitchControl', pitchControl.value);
+        });
+        
+        volumeControl.addEventListener('input', () => {
+            updateRangeValue('volumeControl', volumeControl.value);
+        });
+        
+        // Khởi tạo trang
+        function init() {
+            loadVoices();
+            displayHistory();
+            updateUI();
+            
+            // Kiểm tra nếu trình duyệt hỗ trợ Web Speech API
+            if (!('speechSynthesis' in window)) {
+                updateStatus('Trình duyệt của bạn không hỗ trợ Web Speech API. Vui lòng sử dụng Chrome, Edge hoặc Safari mới nhất.');
+                playBtn.disabled = true;
+            }
+        }
+        
+        // Khởi chạy khi trang đã tải xong
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
